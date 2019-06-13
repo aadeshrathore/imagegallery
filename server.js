@@ -9,7 +9,7 @@ var User = require('./models/user');
 var app = express();
 
 // set our application port
-app.set('port', 9000);
+app.set('port', 8000);
 
 // set morgan to log info about our requests for development use.
 app.use(morgan('dev'));
@@ -27,7 +27,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        expires: 600000
+        expires: 60000000
     }
 }));
 
@@ -122,6 +122,7 @@ app.get('/logout', (req, res) => {
         res.redirect('/login');
     }
 });
+
 
 
 // route for handling 404 requests(unavailable routes)
