@@ -36,7 +36,7 @@ app.use(session({
 // This usually happens when you stop your express server after login, your cookie still remains saved in the browser.
 app.use((req, res, next) => {
     if (req.cookies.user_sid && !req.session.user) {
-        res.clearCookie('user_sid');        
+        res.clearCookie('user_sid');
     }
     next();
 });
@@ -48,7 +48,7 @@ var sessionChecker = (req, res, next) => {
         res.redirect('/dashboard');
     } else {
         next();
-    }    
+    }
 };
 
 
@@ -69,13 +69,13 @@ app.route('/signup')
             email: req.body.email,
             password: req.body.password
         })
-        .then(user => {
-            req.session.user = user.dataValues;
-            res.redirect('/dashboard');
-        })
-        .catch(error => {
-            res.redirect('/signup');
-        });
+            .then(user => {
+                req.session.user = user.dataValues;
+                res.redirect('/dashboard');
+            })
+            .catch(error => {
+                res.redirect('/signup');
+            });
     });
 
 
@@ -89,10 +89,10 @@ app.route('/login')
             password = req.body.password;
 
         User.findOne({ where: { username: username } }).then(function (user) {
-            console.log(user)
+            console.log()
             if (!user) {
                 res.redirect('/login');
-            } else if (!user.validPassword(password)) {
+            } else if (!user._modelOptions.instanceMethods.validPassword(user, password)) {
                 res.redirect('/login');
             } else {
                 req.session.user = user.dataValues;
@@ -104,7 +104,8 @@ app.route('/login')
 
 // route for user's dashboard
 app.get('/dashboard', (req, res) => {
-    if (req.session.user && req.cookies.user_sid) {
+    console.log(req.session.user, req.cookies.user_sid)
+    if (req.session.user != null && req.cookies.user_sid != null) {
         res.sendFile(__dirname + '/public/dashboard.html');
     } else {
         res.redirect('/login');
@@ -125,7 +126,7 @@ app.get('/logout', (req, res) => {
 
 // route for handling 404 requests(unavailable routes)
 app.use(function (req, res, next) {
-  res.status(404).send("Sorry can't find that!")
+    res.status(404).send("Sorry can't find that!")
 });
 
 

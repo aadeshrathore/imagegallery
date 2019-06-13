@@ -28,10 +28,11 @@ var User = sequelize.define('users', {
       }
     },
     instanceMethods: {
-      validPassword: function(password) {
-        return bcrypt.compareSync(password, this.password);
+      validPassword: function(user, password) {
+        console.log(this);
+        return bcrypt.compareSync(password, user.password);
       }
-    }    
+    }
 });
 
 // create all the defined tables in the specified database.
