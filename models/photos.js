@@ -5,13 +5,9 @@ var sequelize = new Sequelize('postgres://postgres:postgres@localhost:5432/auths
 
 // setup User model and its fields.
 var Photo = sequelize.define('photos', {
-    username: {
-        type: Sequelize.STRING,
-        references: { model: "users", key: "username" }
-    },
-    albumname: {
-        type: Sequelize.STRING,
-        references: { model: "albums", key: "albumname" }
+    albumId: {
+        type: Sequelize.INTEGER,
+        references: { model: "albums", key: "id" }
     },
     photoId: {
         type: Sequelize.STRING,

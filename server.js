@@ -4,6 +4,8 @@ var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var morgan = require('morgan');
 var User = require('./models/user');
+var Album = require('./models/albums');
+var Photo = require('./models/photos');
 
 // invoke an instance of express application.
 var app = express();
@@ -104,6 +106,7 @@ app.route('/login')
 
 // route for user's dashboard
 app.get('/dashboard', (req, res) => {
+    Album.findOne({where:{}})
     console.log(req.session.user, req.cookies.user_sid)
     if (req.session.user != null && req.cookies.user_sid != null) {
         res.sendFile(__dirname + '/public/dashboard.html');

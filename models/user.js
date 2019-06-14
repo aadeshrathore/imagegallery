@@ -28,8 +28,7 @@ var User = sequelize.define('users', {
       }
     },
     instanceMethods: {
-      validPassword: function(user, password) {
-        console.log(this);
+      validPassword: function(user, password) {;
         return bcrypt.compareSync(password, user.password);
       }
     }
