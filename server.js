@@ -210,7 +210,13 @@ app.get('/album/:id', (req, res) => {
 });
 
 app.get('/showAlbum/:id', (req, res) => {
-    res.render('showAlbum', { id: req.params.id })
+    Album.findAll({ where: { username: req.session.user.username, albumname: req.params.id } })
+        .then(album => {
+            Photo.findAll({ where: { albumId: album[0].dataValues.id } })
+                .then(photos => {
+                    res.render('showAlbum', { id: req.params.id, photos: photos })
+                })
+        })
 });
 
 var storage = multer.memoryStorage({
@@ -254,10 +260,10 @@ app.post('/upload/:id', upload.array('upl', 1), function (req, res) {
                 Photo.create({
                     albumId: album[0].dataValues.id,
                     photoId: url
-                }).then(photo=>{
+                }).then(photo => {
                     console.log(photo);
                     res.redirect(`/showAlbum/${req.params.id}`)
-                }).catch(error=>{
+                }).catch(error => {
                     console.log(error);
                 })
             });
