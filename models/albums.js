@@ -1,7 +1,7 @@
 var Sequelize = require('sequelize');
 
 // create a sequelize instance with our local postgres database information.
-var sequelize = new Sequelize('postgres://postgres:postgres@localhost:5432/authsystem');
+var sequelize = new Sequelize(DATABASE_URL);
 
 // setup User model and its fields.
 var Album = sequelize.define('albums', {
