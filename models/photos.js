@@ -10,14 +10,14 @@ var Photo = sequelize.define('photos', {
         references: { model: "albums", key: "id" }
     },
     photoId: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(1234),
         allowNull: false,
         unique: true
     }
 });
 
 // create all the defined tables in the specified database.
-sequelize.sync()
+sequelize.sync({alter:true})
     .then(() => console.log('photo table has been successfully created, if one doesn\'t exist'))
     .catch(error => console.log('This error occured', error));
 

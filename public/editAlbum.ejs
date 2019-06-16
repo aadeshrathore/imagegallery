@@ -1,0 +1,28 @@
+<html>
+
+<head>
+    <title>Edit Album Form</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+
+<body class="container">
+    <div class="page-header">
+        <h1>Edit album details</h1>
+        <form action="/album/<%= id %>" method="POST">
+            <input type="hidden" name="_method" value="PUT">
+            Album name: 
+            <input type="text" name="albumname" placeholder="<%= id%>"><br>
+            Description:
+            <input type="text" name="description" placeholder="description">
+            <input type="submit" value="Update Album">
+        </form>
+    </div>
+    <div>
+        <% if (typeof error != "undefined")  { %>
+            <script>alert("album already exists, try another album name........")</script>
+        <% } %>
+    </div>
+</body>
+
+</html>

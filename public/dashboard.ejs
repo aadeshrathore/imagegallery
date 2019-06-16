@@ -1,0 +1,53 @@
+<script>
+    window.onload = function () {
+
+    };
+</script>
+<html>
+
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+
+<body class="container">
+    <div class="page-header">
+        <h1>Welcome to My Album</h1>
+        <form action="/dashboard" method="post">
+            Album name:
+            <input type="text" name="albumname"><br>
+            Description:
+            <input type="text" name="description">
+            <input type="submit" value="Add Album">
+        </form>
+    </div>
+    <div>
+        <% if (typeof error != "undefined")  { %>
+        <script>alert("album already exists, try another album name........")</script>
+        <% } %>
+    </div>
+    <div>
+        <table>
+            <% for(var i=0; i < album.length; i++) { %>
+            <tr>
+                <td><a href="/showAlbum/<%= album[i].dataValues.albumname %>"><%= album[i].dataValues.albumname %></a></td>
+                <td><%= album[i].dataValues.description %></td>
+                <td>
+                    <form action="/album/<%= album[i].dataValues.albumname %>" method="get">
+                        <input type="submit" value="Edit" />
+                    </form>
+                </td>
+                <td>
+                    <form action="/album/<%= album[i].dataValues.albumname %>" method="POST">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="submit" value="Delete" />
+                    </form>
+                </td>
+            </tr>
+            <% } %>
+        </table>
+    </div>
+</body>
+
+</html>

@@ -6,19 +6,41 @@ var morgan = require('morgan');
 var User = require('./models/user');
 var Album = require('./models/albums');
 var Photo = require('./models/photos');
+var ejs = require('ejs');
+var path = require('path');
+var cors = require('cors');
+const methodOverride = require('method-override');
+var multer = require('multer');
+var multerS3 = require('multer-s3')
+var aws = require('aws-sdk');
 
 // invoke an instance of express application.
 var app = express();
 
+const BUCKET_NAME = 'photogallerycodechef';
+const IAM_USER_KEY = 'AKIARLCQJXE6WDIX3YGD';
+const IAM_USER_SECRET = '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';
+
 // set our application port
 app.set('port', 8000);
-
+app.set('views', __dirname + '/public');
+app.set('view engine', 'ejs');
 // set morgan to log info about our requests for development use.
 app.use(morgan('dev'));
 
+app.use(cors());
+// app.use(methodOverride('_method'));
 // initialize body-parser to parse incoming parameters requests to req.body
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use(methodOverride(function (req, res) {
+    if (req.body && typeof req.body === 'object' && '_method' in req.body) {
+        // look in urlencoded POST bodies and delete it
+        var method = req.body._method
+        delete req.body._method
+        return method
+    }
+}))
 // initialize cookie-parser to allow us access the cookies stored in the browser. 
 app.use(cookieParser());
 
@@ -43,7 +65,6 @@ app.use((req, res, next) => {
     next();
 });
 
-
 // middleware function to check for logged-in users
 var sessionChecker = (req, res, next) => {
     if (req.session.user && req.cookies.user_sid) {
@@ -53,12 +74,10 @@ var sessionChecker = (req, res, next) => {
     }
 };
 
-
 // route for Home-Page
 app.get('/', sessionChecker, (req, res) => {
     res.redirect('/login');
 });
-
 
 // route for user signup
 app.route('/signup')
@@ -79,7 +98,6 @@ app.route('/signup')
                 res.redirect('/signup');
             });
     });
-
 
 // route for user Login
 app.route('/login')
@@ -103,19 +121,45 @@ app.route('/login')
         });
     });
 
-
 // route for user's dashboard
 app.get('/dashboard', (req, res) => {
-    Album.findOne({where:{}})
-    console.log(req.session.user, req.cookies.user_sid)
     if (req.session.user != null && req.cookies.user_sid != null) {
-        res.sendFile(__dirname + '/public/dashboard.html');
+        var username = req.session.user.username;
+        Album.findAll({ where: { username: username } }).then(function (album) {
+            console.log(req.session.user, req.cookies.user_sid)
+            res.render('dashboard', { album: album });
+        });
     } else {
         res.redirect('/login');
     }
 });
 
+app.post('/dashboard', (req, res) => {
+    var username = req.session.user.username;
+    Album.findAll({ where: { username: username, albumname: req.body.albumname } }).then(function (album) {
+        console.log(album);
+        if (album.length === 0) {
+            Album.create({
+                username: req.session.user.username,
+                albumname: req.body.albumname,
+                description: req.body.description
+            })
+                .then(albumDetail => {
+                    console.log(albumDetail);
+                    res.redirect('/dashboard');
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+        } else {
+            Album.findAll({ where: { username: username } }).then(function (album) {
+                console.log(req.session.user, req.cookies.user_sid)
+                res.render('dashboard', { album: album, error: "album already exists!!!!!!!" });
+            });
+        }
+    });
 
+});
 // route for user logout
 app.get('/logout', (req, res) => {
     if (req.session.user && req.cookies.user_sid) {
@@ -125,14 +169,104 @@ app.get('/logout', (req, res) => {
         res.redirect('/login');
     }
 });
+app.put('/album/:id', (req, res) => {
+    var username = req.session.user.username;
+    Album.findAll({ where: { username: username, albumname: req.body.albumname } }).then(function (album) {
+        console.log(album)
+        if (album.length === 0) {
+            Album.update({
+                albumname: req.body.albumname,
+                description: req.body.description,
+            }, { where: { albumname: req.params.id, username: username } })
+                .then(albumDetail => {
+                    res.redirect('/dashboard');
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+        } else {
+            Album.findAll({ where: { username: username } }).then(function (album) {
+                console.log(req.session.user, req.cookies.user_sid)
+                res.render('dashboard', { album: album, error: "album already exists!!!!!!!" });
+            });
+        }
+
+    });
+});
+
+app.delete('/album/:id', (req, res) => {
+    var username = req.session.user.username;
+    Album.destroy({ where: { albumname: req.params.id, username: username } })
+        .then(albumDetail => {
+            res.redirect('/dashboard');
+        })
+        .catch(error => {
+            console.log(error);
+        });
+
+});
+app.get('/album/:id', (req, res) => {
+    res.render('editAlbum', { id: req.params.id })
+});
+
+app.get('/showAlbum/:id', (req, res) => {
+    res.render('showAlbum', { id: req.params.id })
+});
+
+var storage = multer.memoryStorage({
+    destination: function (req, file, callback) {
+        callback(null, '');
+    }
+});
+
+aws.config.update({
+    secretAccessKey: IAM_USER_SECRET,
+    accessKeyId: IAM_USER_KEY,
+    region: 'us-east-2'
+});
 
 
+var s3 = new aws.S3()
+
+var upload = multer({
+    storage: multerS3({
+        s3: s3,
+        bucket: BUCKET_NAME,
+        contentType: multerS3.AUTO_CONTENT_TYPE,
+        metadata: function (req, file, cb) {
+            cb(null, { fieldName: file.fieldname });
+        },
+        key: function (req, file, cb) {
+            cb(null, Date.now().toString())
+        }
+    })
+})
+
+app.post('/upload/:id', upload.array('upl', 1), function (req, res) {
+    var key = req.files[0].key;
+    var urlParams = {
+        Bucket: BUCKET_NAME, Key: key
+    }
+    s3.getSignedUrl('getObject', urlParams, function (err, url) {
+        console.log(url);
+        Album.findAll({ where: { username: req.session.user.username, albumname: req.params.id } })
+            .then(function (album) {
+                Photo.create({
+                    albumId: album[0].dataValues.id,
+                    photoId: url
+                }).then(photo=>{
+                    console.log(photo);
+                    res.redirect(`/showAlbum/${req.params.id}`)
+                }).catch(error=>{
+                    console.log(error);
+                })
+            });
+    });
+})
 
 // route for handling 404 requests(unavailable routes)
 app.use(function (req, res, next) {
     res.status(404).send("Sorry can't find that!")
 });
-
-
 // start the express server
 app.listen(app.get('port'), () => console.log(`App started on port ${app.get('port')}`));

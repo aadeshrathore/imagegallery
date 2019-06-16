@@ -7,11 +7,11 @@ var sequelize = new Sequelize('postgres://postgres:postgres@localhost:5432/auths
 var Album = sequelize.define('albums', {
     username: {
         type: Sequelize.STRING,
-        references: { model: "users", key: "username" } 
+        references: { model: "users", key: "username" }, 
     },
     albumname: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
     },
     description: {
         type: Sequelize.STRING,
