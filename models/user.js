@@ -2,7 +2,7 @@ var Sequelize = require('sequelize');
 var bcrypt = require('bcryptjs');
 
 // create a sequelize instance with our local postgres database information.
-//var sequelize = new Sequelize('postgres://postgres:postgres@localhost:5432/authsystem');
+// var sequelize = new Sequelize('postgres://postgres:postgres@localhost:5432/authsystem');
 var sequelize = new Sequelize(process.env.DATABASE_URL);
 // setup User model and its fields.
 var User = sequelize.define('users', {
@@ -35,7 +35,7 @@ var User = sequelize.define('users', {
 });
 
 // create all the defined tables in the specified database.
-sequelize.sync()
+sequelize.sync({alter:true})
     .then(() => console.log('users table has been successfully created, if one doesn\'t exist'))
     .catch(error => console.log('This error occured', error));
 

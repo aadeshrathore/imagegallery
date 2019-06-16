@@ -56,16 +56,26 @@
             <% for(var i=0; i < Math.floor(photos.length/6); i++) { %>
             <% for(var j=(i*6); j < (i*6) + 6; j++) { %>
             <div class="column">
+
                 <img src=<%= photos[j].dataValues.photoId %> style="width:100%">
+                <form action="/album/<%= id%>/photo/<%= photos[i].dataValues.id %>" method="POST">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="submit" value="Delete" />
+                </form>
             </div>
-            <% } %>
             <% } %>
 
-            <% for(var i=(Math.floor(photos.length/6)); i < photos.length; i++) { %>
+            <% } %>
+            <% for(var i=(Math.floor(photos.length/6))*6; i < photos.length; i++) { %>
             <div class="column">
                 <img src=<%= photos[i].dataValues.photoId %> style="width:100%">
+                <form action="/album/<%= id%>/photo/<%= photos[i].dataValues.id %>" method="POST">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="submit" value="Delete" />
+                </form>
             </div>
             <% } %>
+
         </div>
     </div>
 

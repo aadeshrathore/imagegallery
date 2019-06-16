@@ -22,7 +22,7 @@ const IAM_USER_KEY = 'AKIARLCQJXE6WDIX3YGD';
 const IAM_USER_SECRET = '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';
 
 // set our application port
-app.set('port', process.env.PORT || 80);
+app.set('port', process.env.PORT || 8000);
 app.set('views', __dirname + '/public');
 app.set('view engine', 'ejs');
 // set morgan to log info about our requests for development use.
@@ -196,14 +196,19 @@ app.put('/album/:id', (req, res) => {
 
 app.delete('/album/:id', (req, res) => {
     var username = req.session.user.username;
-    Album.destroy({ where: { albumname: req.params.id, username: username } })
-        .then(albumDetail => {
-            res.redirect('/dashboard');
+    Album.findAll({ where: { albumname: req.params.id, username: username } })
+        .then(album => {
+            Photo.destroy({ where: { albumId: album[0].dataValues.id } })
+                .then(photos => {
+                    Album.destroy({ where: { albumname: req.params.id, username: username } })
+                        .then(albumDetail => {
+                            res.redirect('/dashboard');
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                })
         })
-        .catch(error => {
-            console.log(error);
-        });
-
 });
 app.get('/album/:id', (req, res) => {
     res.render('editAlbum', { id: req.params.id })
@@ -251,10 +256,12 @@ var upload = multer({
 app.post('/upload/:id', upload.array('upl', 1), function (req, res) {
     var key = req.files[0].key;
     var urlParams = {
-        Bucket: BUCKET_NAME, Key: key
+        Bucket: BUCKET_NAME, Key: key,
+        Expires: 60*60*24*5
     }
     s3.getSignedUrl('getObject', urlParams, function (err, url) {
-        console.log(url);
+        if(err)
+        console.log("--------------------",err);
         Album.findAll({ where: { username: req.session.user.username, albumname: req.params.id } })
             .then(function (album) {
                 Photo.create({
@@ -269,6 +276,17 @@ app.post('/upload/:id', upload.array('upl', 1), function (req, res) {
             });
     });
 })
+
+app.delete('/album/:albumId/photo/:id', (req, res) => {
+    var username = req.session.user.username;
+    Album.findAll({ where: { albumname: req.params.albumId, username: username } })
+        .then(album => {
+            Photo.destroy({ where: { id: req.params.id } })
+                .then(photos => {
+                    res.redirect(`/showAlbum/${req.params.albumId}`);
+                })
+        })
+});
 
 // route for handling 404 requests(unavailable routes)
 app.use(function (req, res, next) {
