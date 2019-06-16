@@ -22,7 +22,7 @@ const IAM_USER_KEY = 'AKIARLCQJXE6WDIX3YGD';
 const IAM_USER_SECRET = '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';
 
 // set our application port
-app.set('port', 8000||process.env.PORT);
+app.set('port', process.env.PORT || 80);
 app.set('views', __dirname + '/public');
 app.set('view engine', 'ejs');
 // set morgan to log info about our requests for development use.
