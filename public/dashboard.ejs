@@ -12,6 +12,9 @@
 </head>
 
 <body class="container">
+    <ul class="nav navbar-nav navbar-right">
+        <li><a href="/logout">Log Out</a></li>
+    </ul>
     <div class="page-header">
         <h1>Welcome to My Album</h1>
         <form action="/dashboard" method="post">
@@ -23,6 +26,16 @@
         </form>
     </div>
     <div>
+        <table>
+            <% if (typeof err != "undefined")  { %>
+            <% for(var i=0; i < err.errors.length; i++) { %>
+            <tr>
+                <td>
+                    <%= err.errors[i].message %>
+                </td>
+            </tr>
+            <% } }%>
+        </table>
         <% if (typeof error != "undefined")  { %>
         <script>alert("album already exists, try another album name........")</script>
         <% } %>
@@ -31,7 +44,8 @@
         <table>
             <% for(var i=0; i < album.length; i++) { %>
             <tr>
-                <td><a href="/showAlbum/<%= album[i].dataValues.albumname %>"><%= album[i].dataValues.albumname %></a></td>
+                <td><a href="/showAlbum/<%= album[i].dataValues.albumname %>"><%= album[i].dataValues.albumname %></a>
+                </td>
                 <td><%= album[i].dataValues.description %></td>
                 <td>
                     <form action="/album/<%= album[i].dataValues.albumname %>" method="get">

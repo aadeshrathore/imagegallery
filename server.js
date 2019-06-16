@@ -82,38 +82,45 @@ app.get('/', sessionChecker, (req, res) => {
 // route for user signup
 app.route('/signup')
     .get(sessionChecker, (req, res) => {
-        res.sendFile(__dirname + '/public/signup.html');
+        res.render('signup');
     })
     .post((req, res) => {
-        User.create({
-            username: req.body.username,
-            email: req.body.email,
-            password: req.body.password
+        User.findAll({ where: { username: req.body.username } }).then(function (user) {
+            if (user.length > 0) {
+                res.render('signup', {error: "Username already exists.."});
+            } else {
+                User.create({
+                    username: req.body.username,
+                    email: req.body.email,
+                    password: req.body.password
+                })
+                    .then(user => {
+                        req.session.user = user.dataValues;
+                        res.redirect('/dashboard');
+                    })
+                    .catch(error => {
+                        res.redirect('/signup');
+                    });
+            }
+
         })
-            .then(user => {
-                req.session.user = user.dataValues;
-                res.redirect('/dashboard');
-            })
-            .catch(error => {
-                res.redirect('/signup');
-            });
+
     });
 
 // route for user Login
 app.route('/login')
     .get(sessionChecker, (req, res) => {
-        res.sendFile(__dirname + '/public/login.html');
+        res.render('login');
     })
     .post((req, res) => {
         var username = req.body.username,
             password = req.body.password;
 
         User.findOne({ where: { username: username } }).then(function (user) {
-            console.log()
             if (!user) {
-                res.redirect('/login');
+                res.render('login', { err: "Invalid Username." });
             } else if (!user._modelOptions.instanceMethods.validPassword(user, password)) {
-                res.redirect('/login');
+                res.render('login', { err: "Password do not match." });
             } else {
                 req.session.user = user.dataValues;
                 res.redirect('/dashboard');
@@ -149,7 +156,9 @@ app.post('/dashboard', (req, res) => {
                     res.redirect('/dashboard');
                 })
                 .catch(error => {
-                    console.log(error);
+                    Album.findAll({ where: { username: username } }).then(function (album) {
+                        res.render('dashboard', { album: album, err: error });
+                    }); 
                 });
         } else {
             Album.findAll({ where: { username: username } }).then(function (album) {
@@ -211,17 +220,25 @@ app.delete('/album/:id', (req, res) => {
         })
 });
 app.get('/album/:id', (req, res) => {
-    res.render('editAlbum', { id: req.params.id })
+    if (req.session.user != null && req.cookies.user_sid != null) {
+        res.render('editAlbum', { id: req.params.id })
+    } else {
+        res.redirect('/login');
+    }
 });
 
 app.get('/showAlbum/:id', (req, res) => {
-    Album.findAll({ where: { username: req.session.user.username, albumname: req.params.id } })
-        .then(album => {
-            Photo.findAll({ where: { albumId: album[0].dataValues.id } })
-                .then(photos => {
-                    res.render('showAlbum', { id: req.params.id, photos: photos })
-                })
-        })
+    if (req.session.user != null && req.cookies.user_sid != null) {
+        Album.findAll({ where: { username: req.session.user.username, albumname: req.params.id } })
+            .then(album => {
+                Photo.findAll({ where: { albumId: album[0].dataValues.id } })
+                    .then(photos => {
+                        res.render('showAlbum', { id: req.params.id, photos: photos })
+                    })
+            })
+    } else {
+        res.redirect('/login');
+    }
 });
 
 var storage = multer.memoryStorage({
@@ -257,11 +274,11 @@ app.post('/upload/:id', upload.array('upl', 1), function (req, res) {
     var key = req.files[0].key;
     var urlParams = {
         Bucket: BUCKET_NAME, Key: key,
-        Expires: 60*60*24*5
+        Expires: 60 * 60 * 24 * 5
     }
     s3.getSignedUrl('getObject', urlParams, function (err, url) {
-        if(err)
-        console.log("--------------------",err);
+        if (err)
+            console.log("--------------------", err);
         Album.findAll({ where: { username: req.session.user.username, albumname: req.params.id } })
             .then(function (album) {
                 Photo.create({
