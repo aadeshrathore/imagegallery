@@ -38,18 +38,20 @@
 
 <body>
     <ul class="nav navbar-nav navbar-right">
-        <li><a href="/logout">Log Out</a></li>
+        <li><a class="btn btn-danger" href="/logout">Log Out</a></li>
     </ul>
-    <form method="post" enctype="multipart/form-data" action="/upload/<%= id%>">
+    <div class="form-group">
+        <form method="post" enctype="multipart/form-data" action="/upload/<%= id%>">
 
-        <p>
-            <input type="file" name="upl" />
-        </p>
+            <p>
+                <input type="file" name="upl" />
+            </p>
 
-        <p>
-            <input type="submit" />
-        </p>
-    </form>
+            <p>
+                <input class="btn btn-success" type="submit" , value="upload" />
+            </p>
+        </form>
+    </div>
 
     <div>
         <div class="row">
@@ -60,7 +62,7 @@
                 <img src=<%= photos[j].dataValues.photoId %> style="width:100%">
                 <form action="/album/<%= id%>/photo/<%= photos[i].dataValues.id %>" method="POST">
                     <input type="hidden" name="_method" value="DELETE">
-                    <input type="submit" value="Delete" />
+                    <input type="submit" value="Delete" class="btn btn-danger" />
                 </form>
             </div>
             <% } %>
@@ -71,7 +73,7 @@
                 <img src=<%= photos[i].dataValues.photoId %> style="width:100%">
                 <form action="/album/<%= id%>/photo/<%= photos[i].dataValues.id %>" method="POST">
                     <input type="hidden" name="_method" value="DELETE">
-                    <input type="submit" value="Delete" />
+                    <input type="submit" value="Delete" class="btn btn-danger" />
                 </form>
             </div>
             <% } %>

@@ -8,19 +8,19 @@
         integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 </head>
 
-<body class="container">
+<body class="container" style="background-color: rgb(158, 115, 184)">
     <ul class="nav navbar-nav navbar-right">
-        <li><a href="/logout">Log Out</a></li>
+        <li><a class="btn btn-danger" href="/logout">Log Out</a></li>
     </ul>
     <div class="page-header">
         <h1>Edit album details</h1>
         <form action="/album/<%= id %>" method="POST">
             <input type="hidden" name="_method" value="PUT">
             Album name:
-            <input type="text" name="albumname" placeholder="<%= id%>"><br>
+            <input type="text" name="albumname" placeholder="<%= id%>">
             Description:
             <input type="text" name="description" placeholder="description">
-            <input type="submit" value="Update Album">
+            <input class="btn btn-primary" type="submit" value="Update Album">
         </form>
     </div>
     <div>
